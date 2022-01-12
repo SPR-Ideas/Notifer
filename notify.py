@@ -1,10 +1,20 @@
+#!/bin/python3
+from os import system,path
+import sys
+import argparse
 from pushbullet import PushBullet
 from cryptography.fernet import Fernet
-from os import system
 
-SECRET_FILE = "/home/levi/programing/Notifyer/secret.key"
-ENCRYPTED_TOKEN = "/home/levi/programing/Notifyer/access_token"
+SECRET_FILE = path.expanduser("~")+"/.notify/client_secret/secret.key"
+ENCRYPTED_TOKEN = path.expanduser("~")+"/.notify/client_secret/access_token"
 
+
+def exit(msg):
+    """
+    Prints the error and exits the program.
+    """
+    print(msg)
+    sys.exit(1)
 
 def generate_key():
     """
@@ -50,13 +60,18 @@ def change_api_key():
     It encrypt and save the new API Key and
     deletes the old one.
     """
-    new_api_key = input("Enter the new Api key : ")
-    generate_key()
-    encrypted_token = encrypt_message(new_api_key)
+    choice = input("Do you have Api key Y/n ?")
 
-    with open(ENCRYPTED_TOKEN,"wb") as fp:
-        fp.write(encrypted_token)
-        fp.close()
+    if choice == "y" or choice =="Y":
+        new_api_key = input("Enter the new Api key : ")
+        generate_key()
+        encrypted_token = encrypt_message(new_api_key)
+
+        with open(ENCRYPTED_TOKEN,"wb") as fp:
+            fp.write(encrypted_token)
+            fp.close()
+    else:
+        exit("Get Api key form https://www.pushbullet.com")
 
 
 def get_token():
@@ -84,3 +99,34 @@ def task_notifyer(cmd,msg="100%"):
     send_notification("Completed ", msg)
 
 
+def install():
+    """
+        It ask for the Api key for intallation and once it got it
+        it creats an client_secret files if not end the program by
+        exit status 1.
+    """
+    change_api_key()
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-C",type=str,required=False)
+    parser.add_argument("-N" ,type=str,required=False)
+    parser.add_argument("--set",type=str,required=False)
+    parser.add_argument("-I",type=str,required=False)
+
+    args = parser.parse_args()
+
+    if args.N and args.C :
+        task_notifyer(args.C, args.N)
+
+    elif args.set :
+        if args.set == "api-key":
+            change_api_key()
+
+    elif args.C :
+        task_notifyer(args.C)
+
+    elif args.I :
+        install()
