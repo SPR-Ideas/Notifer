@@ -11,5 +11,9 @@ uninstall :
 	rm -r $(HOME)/.notify
 	# rm -r client_secret
 
-tet:
-	echo $(PWD)
+test:
+	python3 -m unittest run test_notify.py
+
+test-report:
+	coverage  run -m unittest test_notify
+	coverage  html --include=notify.py

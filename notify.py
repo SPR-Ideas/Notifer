@@ -1,20 +1,32 @@
+"""
+    Notifyer
+            Whenever we used to perform a bigger taks in a machine like copying a bigger files ,
+        buliding process and installation process we often used to check our machine untill
+        the completion of the task.
+
+            Here the script has different approach that one can start a bigger process and he can
+        leave the system for a while and can go for a break. once the task assigned is completed it
+        automatically send us a notification that the task is completed.
+"""
 #!/bin/python3
 from os import system,path
 import sys
 import argparse
-from pushbullet import PushBullet
+from pushbullet import PushBullet ,errors
 from cryptography.fernet import Fernet
+import requests
 
 SECRET_FILE = path.expanduser("~")+"/.notify/client_secret/secret.key"
 ENCRYPTED_TOKEN = path.expanduser("~")+"/.notify/client_secret/access_token"
 
 
-def exit(msg):
+def end(msg):
     """
     Prints the error and exits the program.
     """
     print(msg)
     sys.exit(1)
+
 
 def generate_key():
     """
@@ -29,7 +41,8 @@ def load_key():
     """
     Load the previously generated key.
     """
-    return open(SECRET_FILE, "rb").read()
+    with open(SECRET_FILE, "rb") as r:
+        return r.read()
 
 
 def encrypt_message(message):
@@ -55,6 +68,19 @@ def decrypt_message(encrypted_message):
     return decrypted_message
 
 
+def check_api_key(api_key):
+    """
+        It checks the wether the api key is valid or not form the pushnote
+    server.
+    """
+    try :
+        PushBullet(api_key)
+    except errors.InvalidKeyError:
+        end(" ------------------! Wrong API key !----------------- ")
+    except requests.exceptions.ConnectionError:
+        end(" ---------! Check Your Internet connection !--------- ")
+
+
 def change_api_key():
     """
     It encrypt and save the new API Key and
@@ -62,16 +88,19 @@ def change_api_key():
     """
     choice = input("Do you have Api key Y/n ?")
 
-    if choice == "y" or choice =="Y":
+    if choice in ("y" ,"Y"):
         new_api_key = input("Enter the new Api key : ")
         generate_key()
+        check_api_key(new_api_key)
         encrypted_token = encrypt_message(new_api_key)
 
         with open(ENCRYPTED_TOKEN,"wb") as fp:
             fp.write(encrypted_token)
             fp.close()
+        print(" ----------------- # API-key is Sucessfully Updated # --------------")
+
     else:
-        exit("Get Api key form https://www.pushbullet.com")
+        end("Get Api key form https://www.pushbullet.com")
 
 
 def get_token():
@@ -89,14 +118,22 @@ def send_notification(title,msg):
     Sends the notification to our mobile.
     """
     token = get_token()
-    pb = PushBullet(token)
-    status = pb.push_note(title,msg)
-    return status
+    try:
+        pb = PushBullet(token)
+        pb.push_note(title,msg)
+    except requests.exceptions.ConnectionError:
+        end(" ---------! Check Your Internet connection !--------- ")
 
 
 def task_notifyer(cmd,msg="100%"):
-    system(cmd)
-    send_notification("Completed ", msg)
+    """
+        It is the start of the program it execute the tasks and
+        once its is completed it sends the notification for user.
+    """
+    if system(cmd) == 0:
+        send_notification("Completed ", msg)
+    else:
+        send_notification("process failed ","cmd : "+cmd+"\n"+ ''if msg == "100%" else msg )
 
 
 def install():

@@ -1,6 +1,6 @@
 # **Process Notifyer**
 ## **Description**
-The project Process notifer is just a python script for notify a specific task which you performing on a linux machine.In some case like buliding your project might take a lot time inorder to notify you after the completion of the bulid process via mobile phone by simple pop-up notification.
+The project Process notifer is just a python script for notify a specific task which you performing on a linux machine.In some case like buliding your prAoject might take a lot time inorder to notify you after the completion of the bulid process via mobile phone by simple pop-up notification.
 
 ## **Installation**
 1. To start off with we need to download the [push butllet](https://play.google.com/store/apps/details?id=com.pushbullet.android) app for our andriod phone.
